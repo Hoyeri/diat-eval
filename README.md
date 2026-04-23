@@ -98,7 +98,7 @@ python scripts/run_all_diat_experiments.py \
 
 ## Dataset Format
 
-The evaluator expects a multiple-choice dataset in `.json` or `.jsonl` format. The recommended format is a `.json` file containing a JSON array of question objects:
+The evaluator expects a multiple-choice dataset in `.json` format.
 
 ```json
 [

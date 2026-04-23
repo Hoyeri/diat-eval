@@ -1,0 +1,65 @@
+[
+  {
+    "id": 0,
+    "question": "What is 2 + 2?",
+    "opa": "3",
+    "opb": "4",
+    "answer": "4",
+    "answer_idx": "B"
+  },
+  {
+    "id": 1,
+    "question": "Which of these is a mammal?",
+    "opa": "Shark",
+    "opb": "Dolphin",
+    "opc": "Trout",
+    "answer": "Dolphin",
+    "answer_idx": "B"
+  },
+  {
+    "id": 2,
+    "question": "Which planet is known as the Red Planet?",
+    "opa": "Venus",
+    "opb": "Jupiter",
+    "opc": "Mars",
+    "opd": "Saturn",
+    "answer": "Mars",
+    "answer_idx": "C"
+  },
+  {
+    "id": 3,
+    "question": "Which of the following is the largest ocean on Earth?",
+    "opa": "Atlantic Ocean",
+    "opb": "Pacific Ocean",
+    "opc": "Indian Ocean",
+    "opd": "Arctic Ocean",
+    "ope": "Southern Ocean",
+    "answer": "Pacific Ocean",
+    "answer_idx": "B"
+  },
+  {
+    "id": 4,
+    "question": "Which of these is a programming language?",
+    "opa": "Python",
+    "opb": "Anaconda",
+    "opc": "Cobra",
+    "opd": "Viper",
+    "ope": "Boa",
+    "opf": "Mamba",
+    "answer": "Python",
+    "answer_idx": "A"
+  },
+  {
+    "id": 5,
+    "question": "Which of these is a prime number?",
+    "opa": "4",
+    "opb": "5",
+    "opc": "6",
+    "opd": "10",
+    "ope": "8",
+    "opf": "9",
+    "opg": "12",
+    "answer": "5",
+    "answer_idx": "B"
+  }
+]
