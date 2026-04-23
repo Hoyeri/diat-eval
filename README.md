@@ -26,7 +26,7 @@ For the SFT and DIAT variants, the script loads the corresponding Hugging Face a
 You only need this workflow:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Hoyeri/diat-eval.git
 cd diat-eval
 
 # Optional but recommended: create and activate your own environment first.
@@ -36,6 +36,9 @@ cd diat-eval
 pip install tqdm torch transformers peft huggingface_hub
 pip install vllm
 
+# Before running the full suite, make sure your Hugging Face account has access
+# to meta-llama/Llama-3.1-8B-Instruct:
+# https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
 huggingface-cli login
 
 # Remove the example files, then place your real dataset file(s) here.
@@ -155,7 +158,7 @@ Authenticate with Hugging Face before running evaluation:
 huggingface-cli login
 ```
 
-Important: `meta-llama/Llama-3.1-8B-Instruct` requires the Hugging Face account running the evaluation to have accepted the model license.
+Important: `meta-llama/Llama-3.1-8B-Instruct` requires access approval before evaluation. Request access at [https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct), then log in with the approved Hugging Face account.
 
 ## Step 4: Choose a Backend
 
