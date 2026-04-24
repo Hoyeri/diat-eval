@@ -1,6 +1,6 @@
 # DIAT Evaluation Package
 
-This repository provides a simple script for evaluating SFT and DIAT model variants on your own multiple-choice dataset.
+This repository provides a simple script for evaluating base, SFT, and DIAT model variants on your own multiple-choice dataset.
 
 The trained adapters are already uploaded to Hugging Face. You do not need to train models or manually download adapter files. The evaluation script loads the required base models and adapters, runs inference on the dataset files you provide, and writes the results under `./results`.
 
@@ -16,10 +16,11 @@ By default, it evaluates every `.json` dataset file under `./dataset` using the 
 
 | family | base model | evaluated variants |
 | --- | --- | --- |
-| `qwen` | `Qwen/Qwen3-8B` | `base`, `sft` seeds 42/43/44, `diat` seeds 42/43/44 |
-| `llama` | `meta-llama/Llama-3.1-8B-Instruct` | `base`, `sft` seeds 42/43/44, `diat` seeds 42/43/44 |
+| `qwen` | `Qwen/Qwen3-8B` | `base` with `default` and `instruction` prompts, `sft` seeds 42/43/44 with `default`, `diat` seeds 42/43/44 with `default` |
+| `llama` | `meta-llama/Llama-3.1-8B-Instruct` | `base` with `default` and `instruction` prompts, `sft` seeds 42/43/44 with `default`, `diat` seeds 42/43/44 with `default` |
 
 For the SFT and DIAT variants, the script loads the corresponding Hugging Face adapter repositories automatically.
+For base models, the suite now supports two prompt styles: `default` and `instruction`. The `instruction` prompt explicitly tells the model to ignore noise such as trap details, misleading clues, and diagnostically irrelevant information.
 
 ## Quick Start
 
@@ -98,8 +99,6 @@ python scripts/run_all_diat_experiments.py \
 
 ## Dataset Format
 
-The evaluator expects a multiple-choice dataset in `.json` format.
-
 ```json
 [
   {
@@ -170,7 +169,7 @@ Use `vllm` when:
 - you want to run the full suite faster;
 - you are running the main evaluation rather than debugging model loading.
 
-Recommended full-suite command:
+Recommended vLLM full-suite command:
 
 ```bash
 python scripts/run_all_diat_experiments.py \
@@ -188,7 +187,7 @@ Use `hf` when:
 - you want the standard Transformers/PEFT loading path;
 - you are debugging a small run or checking compatibility.
 
-Recommended Hugging Face command:
+Recommended Hugging Face full-suite command:
 
 ```bash
 python scripts/run_all_diat_experiments.py \
@@ -202,16 +201,28 @@ The `hf` backend can be slower, especially for the full model suite. `--load_in_
 
 ## Step 5: Run the Full Evaluation
 
-After your real dataset files are in `dataset/`, run:
+After your real dataset files are in `dataset/`, run one of the full-suite commands from Step 4.
+
+That run evaluates all configured base, SFT, and DIAT models on every `.json` file in `dataset/`.
+By default, each base model is evaluated twice, once with the original `default` prompt and once with the `instruction` prompt. Adapter variants remain on the `default` prompt.
+
+## Prompt Styles
+
+The suite-level script uses:
+
+- `default` and `instruction` for `base` runs
+- `default` only for `sft` and `diat` runs
+
+If you run the single evaluator directly instead of the suite runner, choose the prompt explicitly:
 
 ```bash
-python scripts/run_all_diat_experiments.py \
+python src/eval_diat.py \
+  --model Qwen/Qwen3-8B \
   --backend vllm \
-  --dataset_dir dataset \
-  --output_dir results
+  --dataset_path dataset/your_dataset.json \
+  --output_dir results \
+  --prompt_style instruction
 ```
-
-This evaluates all configured base, SFT, and DIAT models on every `.json` file in `dataset/`.
 
 ## Results
 
@@ -227,19 +238,30 @@ The most useful file is:
 results/final_summary.csv
 ```
 
-This file contains one row per completed evaluation run, including the dataset name, model family, variant, seed, backend, accuracy, number correct, and total number of evaluated samples.
+This file contains one row per completed evaluation run, including the dataset name, model family, variant, prompt style, seed, backend, accuracy, number correct, and total number of evaluated samples.
 
 Each individual run also writes:
 
 ```text
-results/<base_model_name>/base/<backend>/<dataset_tag>/
-  test_results.jsonl
-  summary.json
-
-results/<base_model_name>/tuned_<adapter_name>/<backend>/<dataset_tag>/
+results/<model_name>/<backend>/<prompt_style>/<dataset_tag>/
   test_results.jsonl
   summary.json
 ```
+
+Where:
+
+- `<model_name>` is either `<base_model_name>/base` or `<base_model_name>/tuned_<adapter_name>`
+- `<prompt_style>` is `default` or `instruction`
+
+Examples:
+
+```text
+results/Qwen_Qwen3-8B/base/vllm/default/<dataset_tag>/
+results/Qwen_Qwen3-8B/base/vllm/instruction/<dataset_tag>/
+results/Qwen_Qwen3-8B/tuned_qwen3-8b-sft-seed42/vllm/default/<dataset_tag>/
+```
+
+All runs store `prompt_style` explicitly as a directory level: `<model_name>/<backend>/<prompt_style>/<dataset_tag>/`. Base runs may use `default` or `instruction`, while adapter runs currently use `default`.
 
 The full suite additionally writes timestamped metadata:
 

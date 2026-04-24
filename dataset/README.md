@@ -11,7 +11,7 @@ python scripts/run_all_diat_experiments.py \
   --output_dir results
 ```
 
-Before running evaluation, remove the sample file and copy your real dataset file(s) here:
+Before running evaluation, remove the sample files and copy your real dataset file(s) here:
 
 ```bash
 rm -f dataset/*.json dataset/*.jsonl

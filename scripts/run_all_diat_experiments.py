@@ -51,6 +51,7 @@ CSV_COLUMNS = [
     "dataset_path",
     "family",
     "variant",
+    "prompt_style",
     "seed",
     "backend",
     "model",
@@ -151,6 +152,13 @@ def parse_args():
         help="Seeds to run for adapter variants.",
     )
     parser.add_argument(
+        "--base_prompt_styles",
+        nargs="+",
+        choices=["default", "instruction"],
+        default=["default", "instruction"],
+        help="Prompt styles to evaluate for base models.",
+    )
+    parser.add_argument(
         "--continue_on_error",
         action="store_true",
         help="Keep running remaining experiments after a failed command.",
@@ -195,6 +203,7 @@ def build_runs(args):
     selected_families = set(args.families)
     selected_variants = set(args.variants)
     selected_seeds = set(args.seeds)
+    selected_base_prompt_styles = list(dict.fromkeys(args.base_prompt_styles))
 
     runs = []
     for experiment in EXPERIMENTS:
@@ -202,15 +211,17 @@ def build_runs(args):
             continue
 
         if "base" in selected_variants:
-            runs.append(
-                {
-                    "family": experiment["family"],
-                    "variant": "base",
-                    "seed": None,
-                    "model": experiment["base_model"],
-                    "adapter": None,
-                }
-            )
+            for prompt_style in selected_base_prompt_styles:
+                runs.append(
+                    {
+                        "family": experiment["family"],
+                        "variant": "base",
+                        "prompt_style": prompt_style,
+                        "seed": None,
+                        "model": experiment["base_model"],
+                        "adapter": None,
+                    }
+                )
 
         for variant_name, variant_adapters in experiment["adapters"].items():
             if variant_name not in selected_variants:
@@ -222,6 +233,7 @@ def build_runs(args):
                     {
                         "family": experiment["family"],
                         "variant": variant_name,
+                        "prompt_style": "default",
                         "seed": seed,
                         "model": experiment["base_model"],
                         "adapter": adapter,
@@ -234,16 +246,19 @@ def sanitize_name(name: str):
     return name.replace("/", "_")
 
 
+def build_model_name(model, adapter):
+    base_name = sanitize_name(model)
+    if adapter:
+        adapter_name = sanitize_name(os.path.basename(os.path.normpath(adapter)))
+        return f"{base_name}/tuned_{adapter_name}"
+    return f"{base_name}/base"
+
+
 def infer_eval_output_paths(output_root, dataset_path, run, backend):
-    base_name = sanitize_name(run["model"])
-    if run["adapter"]:
-        adapter_name = sanitize_name(os.path.basename(os.path.normpath(run["adapter"])))
-        model_name = f"{base_name}/tuned_{adapter_name}"
-    else:
-        model_name = f"{base_name}/base"
+    model_name = build_model_name(run["model"], run["adapter"])
 
     dataset_tag = str(dataset_path).replace(os.sep, "_")
-    output_dir = output_root / model_name / backend / dataset_tag
+    output_dir = output_root / model_name / backend / run["prompt_style"] / dataset_tag
     return output_dir / "test_results.jsonl", output_dir / "summary.json"
 
 
@@ -259,6 +274,8 @@ def build_command(eval_script, args, dataset_path, run):
         str(dataset_path),
         "--output_dir",
         args.output_dir,
+        "--prompt_style",
+        run["prompt_style"],
         "--max_new_tokens",
         str(args.max_new_tokens),
         "--debug_n",
@@ -312,6 +329,9 @@ def build_csv_row(record):
         "dataset_path": dataset_path,
         "family": record.get("family"),
         "variant": record.get("variant"),
+        "prompt_style": experiment_info.get(
+            "prompt_style", record.get("prompt_style", "")
+        ),
         "seed": "" if record.get("seed") is None else record.get("seed"),
         "backend": record.get("backend"),
         "model": record.get("model"),
@@ -390,9 +410,9 @@ def main():
     for dataset_path in dataset_files:
         for run in runs:
             run_name = (
-                f"{run['family']}:{run['variant']}"
+                f"{run['family']}:{run['variant']}:{run['prompt_style']}"
                 if run["seed"] is None
-                else f"{run['family']}:{run['variant']}:seed{run['seed']}"
+                else f"{run['family']}:{run['variant']}:seed{run['seed']}:{run['prompt_style']}"
             )
             cmd = build_command(eval_script, args, dataset_path, run)
             print("\n" + "=" * 80)
@@ -403,6 +423,7 @@ def main():
                 "dataset_path": str(dataset_path),
                 "family": run["family"],
                 "variant": run["variant"],
+                "prompt_style": run["prompt_style"],
                 "seed": run["seed"],
                 "model": run["model"],
                 "adapter": run["adapter"],

@@ -35,6 +35,13 @@ def parse_args():
     )
     parser.add_argument("--dataset_path", type=str, default="./data/test.jsonl")
     parser.add_argument("--output_dir", type=str, default="./results")
+    parser.add_argument(
+        "--prompt_style",
+        type=str,
+        choices=["default", "instruction"],
+        default="default",
+        help="Prompt template to use when formatting each question.",
+    )
     parser.add_argument("--max_new_tokens", type=int, default=1024)
     parser.add_argument(
         "--debug_n", type=int, default=5, help="Print raw outputs for first N samples"
@@ -74,13 +81,31 @@ def infer_model_type(adapter_path=None):
     return "peft_adapter" if adapter_path else "base_model"
 
 
-def build_prompt(question_data, valid_letters):
+def build_system_prompt(valid_letters, prompt_style):
     letters_str = ", ".join(valid_letters)
-    system_prompt = (
+
+    if prompt_style == "instruction":
+        # Keep the answer letters dynamic because this evaluator supports 2-7 options.
+        return (
+            "You are a medical AI assistant used for decision-making in a clinical setting.\n"
+            "The question may contain trap details, misleading clues, or clinically plausible but diagnostically irrelevant information.\n"
+            "Do not be distracted by information that is not necessary for determining the correct answer.\n"
+            "Reason step-by-step through this problem and provide your final answer\n"
+            f"Return only the letter ({letters_str}) of your choice and nothing else."
+        )
+
+    if prompt_style != "default":
+        raise ValueError(f"Unsupported prompt style: {prompt_style}")
+
+    return (
         "You are a medical AI assistant used for decision-making in a clinical setting.\n"
         "Reason step-by-step through this problem, and provide your final answer\n"
         f"(Return only the letter ({letters_str}) of your choice and nothing else.)"
     )
+
+
+def build_prompt(question_data, valid_letters, prompt_style):
+    system_prompt = build_system_prompt(valid_letters, prompt_style)
 
     options_block = "\n".join(
         f"{letter}) {question_data['options'][letter]}" for letter in valid_letters
@@ -452,7 +477,7 @@ def load_dataset(path):
     return [json.loads(line) for line in content.splitlines() if line.strip()]
 
 
-def prepare_samples(raw_data):
+def prepare_samples(raw_data, prompt_style):
     prepared_samples = []
     for sample in raw_data:
         question, options, valid_letters, gold_answer = normalize_sample(sample)
@@ -463,11 +488,26 @@ def prepare_samples(raw_data):
                 "valid_letters": valid_letters,
                 "gold_answer": gold_answer,
                 "prompt": build_prompt(
-                    {"question": question, "options": options}, valid_letters
+                    {"question": question, "options": options},
+                    valid_letters,
+                    prompt_style,
                 ),
             }
         )
     return prepared_samples
+
+
+def build_model_name(model, adapter):
+    base_name = sanitize_name(model)
+    if adapter:
+        adapter_name = sanitize_name(os.path.basename(os.path.normpath(adapter)))
+        return f"{base_name}/tuned_{adapter_name}"
+    return f"{base_name}/base"
+
+
+def build_output_dir(output_root, model_name, backend, dataset_tag, prompt_style):
+    path_parts = [output_root, model_name, backend, prompt_style, dataset_tag]
+    return os.path.join(*path_parts)
 
 
 def generate_outputs_hf(args, prepared_samples):
@@ -526,17 +566,18 @@ def run_evaluation(args):
 
     raw_data = load_dataset(args.dataset_path)
     print(f"Evaluating {len(raw_data)} samples")
-    prepared_samples = prepare_samples(raw_data)
+    prepared_samples = prepare_samples(raw_data, args.prompt_style)
 
-    base_name = sanitize_name(args.model)
-    if args.adapter:
-        adapter_name = sanitize_name(os.path.basename(os.path.normpath(args.adapter)))
-        model_name = f"{base_name}/tuned_{adapter_name}"
-    else:
-        model_name = f"{base_name}/base"
+    model_name = build_model_name(args.model, args.adapter)
 
     dataset_tag = args.dataset_path.replace(os.sep, "_")
-    output_dir = os.path.join(args.output_dir, model_name, args.backend, dataset_tag)
+    output_dir = build_output_dir(
+        args.output_dir,
+        model_name,
+        args.backend,
+        dataset_tag,
+        args.prompt_style,
+    )
     os.makedirs(output_dir, exist_ok=True)
 
     output_path = os.path.join(output_dir, "test_results.jsonl")
@@ -556,6 +597,7 @@ def run_evaluation(args):
         "adapter": args.adapter,
         "model_type": model_type,
         "model_name": model_name,
+        "prompt_style": args.prompt_style,
         "backend": args.backend,
         "dataset_path": args.dataset_path,
     }
@@ -642,6 +684,7 @@ def run_evaluation(args):
             "timestamp": datetime.now().isoformat(),
             "base_model": args.model,
             "adapter": args.adapter,
+            "prompt_style": args.prompt_style,
             "backend": args.backend,
             "model_type": model_type,
             "dataset_path": args.dataset_path,
