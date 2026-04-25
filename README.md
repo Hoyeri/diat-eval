@@ -258,4 +258,4 @@ Use `results/final_summary.csv` for the latest run summary. Use the timestamped 
 
 ## Notes
 
-- If a run fails after some models have completed, partial results and suite metadata are still written under `results/`.
+- If a run fails after some models have completed, partial results and suite metadata are still written under `results/`, but rerunning the suite does not automatically resume from the failure point.
