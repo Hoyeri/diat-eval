@@ -409,8 +409,11 @@ def main():
 
     records = []
     failure_count = 0
+    total_runs = len(dataset_files) * len(runs)
+    completed_runs = 0
     for dataset_path in dataset_files:
         for run in runs:
+            completed_runs += 1
             run_name = (
                 f"{run['family']}:{run['variant']}:{run['prompt_style']}"
                 if run["seed"] is None
@@ -418,7 +421,7 @@ def main():
             )
             cmd = build_command(eval_script, args, dataset_path, run)
             print("\n" + "=" * 80)
-            print(f"Running {run_name} on {dataset_path.name}")
+            print(f"Running [{completed_runs}/{total_runs}] {run_name} on {dataset_path.name}")
             print(" ".join(cmd))
 
             record = {
