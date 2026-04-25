@@ -151,9 +151,7 @@ def resolve_hf_quantization_mode(args):
         return "4bit", "user_requested"
     if args.load_in_8bit:
         return "8bit", "user_requested"
-    if args.adapter:
-        return "4bit", "default_for_adapter"
-    return "bf16", "default_for_base"
+    return "bf16", "default"
 
 
 def load_hf_inference_model(args):
