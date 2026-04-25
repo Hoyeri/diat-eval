@@ -170,7 +170,6 @@ This repository supports two evaluation backends: `vllm` and `hf`.
 Use `vllm` when:
 
 - it installs cleanly in your GPU environment;
-- you want the recommended default path for full evaluation;
 - you want faster evaluation throughput than the Hugging Face fallback.
 
 Recommended vLLM full-suite command:
@@ -200,7 +199,7 @@ python scripts/run_all_diat_experiments.py \
   --output_dir results
 ```
 
-The `hf` backend is the fallback path when `vllm` is unavailable, and it uses standard Transformers/PEFT loading with default `bf16` evaluation. It can be slower than `vllm`, especially for the full model suite. If the model does not fit in GPU memory or fails to load in the default mode, rerun with `--load_in_4bit` or `--load_in_8bit` as a lower-memory fallback.
+The `hf` backend is the fallback path when `vllm` is unavailable, and it uses standard Transformers/PEFT loading. It can be slower than `vllm`, especially for the full model suite. If the model does not fit in GPU memory or fails to load in the default mode, rerun with `--load_in_4bit` or `--load_in_8bit` as a lower-memory fallback.
 
 ## Step 5: Run the Full Evaluation
 
@@ -208,24 +207,6 @@ After your real dataset files are in `dataset/`, run one of the full-suite comma
 
 That run evaluates all configured base, SFT, and DIAT models on every `.json` or `.jsonl` file in `dataset/`.
 By default, each base model is evaluated twice, once with the original `default` prompt and once with the `instruction` prompt. Adapter variants remain on the `default` prompt.
-
-## Prompt Styles
-
-The suite-level script uses:
-
-- `default` and `instruction` for `base` runs
-- `default` only for `sft` and `diat` runs
-
-If you run the single evaluator directly instead of the suite runner, choose the prompt explicitly:
-
-```bash
-python src/eval_diat.py \
-  --model Qwen/Qwen3-8B \
-  --backend vllm \
-  --dataset_path dataset/your_dataset.json \
-  --output_dir results \
-  --prompt_style instruction
-```
 
 ## Results
 
@@ -265,8 +246,6 @@ results/Qwen_Qwen3-8B/base/vllm/default/<dataset_tag>/
 results/Qwen_Qwen3-8B/base/vllm/instruction/<dataset_tag>/
 results/Qwen_Qwen3-8B/tuned_qwen3-8b-sft-seed42/vllm/default/<dataset_tag>/
 ```
-
-All runs store `prompt_style` explicitly as a directory level: `<model_name>/<backend>/<prompt_style>/<dataset_tag>/`. Base runs may use `default` or `instruction`, while adapter runs currently use `default`.
 
 The full suite additionally writes timestamped metadata:
 
