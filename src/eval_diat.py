@@ -50,7 +50,7 @@ def parse_args():
     )
     parser.add_argument("--max_new_tokens", type=int, default=DEFAULT_MAX_NEW_TOKENS)
     parser.add_argument(
-        "--debug_n", type=int, default=5, help="Print raw outputs for first N samples"
+        "--debug_n", type=int, default=0, help="Print raw outputs for first N samples"
     )
     parser.add_argument(
         "--batch_size",
@@ -647,13 +647,6 @@ def run_evaluation(args):
         if is_correct is not None:
             correct += int(is_correct)
             total += 1
-
-        print(
-            f"[{i:04d}] "
-            f"PRED={pred_answer} | "
-            f"GT={gold_answer} | "
-            f"{status}"
-        )
 
         results.append(
             {
