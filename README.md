@@ -88,6 +88,8 @@ cp /path/to/your_dataset.json dataset/
 
 This matters because `run_all_diat_experiments.py` evaluates every `.json` and `.jsonl` file under `dataset/` when you use `--dataset_dir dataset`. If sample files are still there, they will also be evaluated.
 
+If your datasets live somewhere else, pass that directory explicitly with `--dataset_dir /path/to/your_datasets`.
+
 If you prefer to evaluate one specific file without deleting the samples, pass it explicitly:
 
 ```bash
@@ -202,7 +204,7 @@ The `hf` backend uses standard Transformers/PEFT loading and defaults to `bf16` 
 
 After your real dataset files are in `dataset/`, run one of the full-suite commands from Step 4.
 
-That run evaluates all configured base, SFT, and DIAT models on every `.json` file in `dataset/`.
+That run evaluates all configured base, SFT, and DIAT models on every `.json` or `.jsonl` file in `dataset/`.
 By default, each base model is evaluated twice, once with the original `default` prompt and once with the `instruction` prompt. Adapter variants remain on the `default` prompt.
 
 ## Prompt Styles

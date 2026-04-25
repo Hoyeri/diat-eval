@@ -90,11 +90,7 @@ def get_eval_script(project_root):
 
 
 def get_default_dataset_dir(project_root):
-    for dirname in ["datasets", "dataset"]:
-        dataset_dir = project_root / dirname
-        if dataset_dir.is_dir():
-            return dataset_dir
-    return project_root / "datasets"
+    return project_root / "dataset"
 
 
 def parse_args():
@@ -113,7 +109,7 @@ def parse_args():
         "--dataset_dir",
         type=str,
         default=str(get_default_dataset_dir(project_root)),
-        help="Directory containing dataset files when --dataset_path is not set.",
+        help="Directory containing dataset files when --dataset_path is not set. Defaults to ./dataset.",
     )
     parser.add_argument(
         "--output_dir",
@@ -184,7 +180,7 @@ def collect_dataset_files(args):
     dataset_dir = Path(args.dataset_dir).resolve()
     if not dataset_dir.exists():
         raise FileNotFoundError(
-            f"Dataset directory not found: {dataset_dir}. Create it and add .json/.jsonl files."
+            f"Dataset directory not found: {dataset_dir}. Create ./dataset and add .json/.jsonl files, or pass --dataset_dir with a different location."
         )
 
     dataset_files = sorted(
