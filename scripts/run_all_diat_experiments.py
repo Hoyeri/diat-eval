@@ -117,7 +117,7 @@ def parse_args():
         default=str(project_root / "results"),
         help="Root output directory passed to eval_diat.py.",
     )
-    parser.add_argument("--backend", type=str, choices=["hf", "vllm"], default="hf")
+    parser.add_argument("--backend", type=str, choices=["hf", "vllm"], default="vllm")
     parser.add_argument("--max_new_tokens", type=int, default=1024)
     parser.add_argument("--debug_n", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=32)

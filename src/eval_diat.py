@@ -27,7 +27,7 @@ def parse_args():
     )
     parser.add_argument("--model", type=str, required=True)
     parser.add_argument("--adapter", type=str, default=None)
-    parser.add_argument("--backend", type=str, choices=["hf", "vllm"], default="hf")
+    parser.add_argument("--backend", type=str, choices=["hf", "vllm"], default="vllm")
     quant_group = parser.add_mutually_exclusive_group()
     quant_group.add_argument(
         "--load_in_4bit",

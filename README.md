@@ -12,7 +12,7 @@ The main script is:
 scripts/run_all_diat_experiments.py
 ```
 
-By default, it evaluates every `.json` dataset file under `./dataset` using the full model suite:
+By default, it evaluates every `.json` or `.jsonl` dataset file under `./dataset` using the full model suite:
 
 | family | base model | evaluated variants |
 | --- | --- | --- |
