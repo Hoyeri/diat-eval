@@ -158,7 +158,7 @@ pip install bitsandbytes
 Authenticate with Hugging Face before running evaluation:
 
 ```bash
-huggingface-cli login
+hf auth login
 ```
 
 Important: `meta-llama/Llama-3.1-8B-Instruct` requires access approval before evaluation. Request access at [https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct), then log in with the approved Hugging Face account.
