@@ -252,6 +252,8 @@ results/final_summary.csv
 
 This file contains one row per completed evaluation run, including the dataset name, model family, variant, prompt style, seed, backend, accuracy, number correct, and total number of evaluated samples.
 
+If you want to share evaluation outputs after the run finishes, compress the `results/` directory and share the archive (for example, via Google Drive). 
+
 Each individual run also writes:
 
 ```text
