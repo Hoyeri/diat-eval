@@ -93,15 +93,6 @@ This matters because `run_all_diat_experiments.py` evaluates every `.json` and `
 
 If your datasets live somewhere else, pass that directory explicitly with `--dataset_dir /path/to/your_datasets`.
 
-If you prefer to evaluate one specific file without deleting the samples, pass it explicitly:
-
-```bash
-python scripts/run_all_diat_experiments.py \
-  --backend vllm \
-  --dataset_path dataset/your_dataset.json \
-  --output_dir results
-```
-
 ## Dataset Format
 
 ```json
