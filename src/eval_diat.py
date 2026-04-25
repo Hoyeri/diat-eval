@@ -13,6 +13,12 @@ from tqdm import tqdm
 OPTION_KEYS = ["opa", "opb", "opc", "opd", "ope", "opf", "opg"]
 MIN_OPTIONS = 2
 MAX_OPTIONS = 7
+DEFAULT_MAX_NEW_TOKENS = 1024
+DEFAULT_TEMPERATURE = 0.0
+DEFAULT_TENSOR_PARALLEL_SIZE = 1
+DEFAULT_MAX_MODEL_LEN = 4096
+DEFAULT_MAX_NUM_SEQS = 64
+DEFAULT_DTYPE = "bfloat16"
 
 
 def parse_args():
@@ -42,7 +48,7 @@ def parse_args():
         default="default",
         help="Prompt template to use when formatting each question.",
     )
-    parser.add_argument("--max_new_tokens", type=int, default=1024)
+    parser.add_argument("--max_new_tokens", type=int, default=DEFAULT_MAX_NEW_TOKENS)
     parser.add_argument(
         "--debug_n", type=int, default=5, help="Print raw outputs for first N samples"
     )
@@ -55,7 +61,7 @@ def parse_args():
     parser.add_argument(
         "--tensor_parallel_size",
         type=int,
-        default=1,
+        default=DEFAULT_TENSOR_PARALLEL_SIZE,
         help="vLLM tensor parallel size",
     )
     parser.add_argument(
@@ -67,8 +73,20 @@ def parse_args():
     parser.add_argument(
         "--max_model_len",
         type=int,
-        default=None,
-        help="Optional vLLM max model length override",
+        default=DEFAULT_MAX_MODEL_LEN,
+        help="vLLM max model length",
+    )
+    parser.add_argument(
+        "--max_num_seqs",
+        type=int,
+        default=DEFAULT_MAX_NUM_SEQS,
+        help="vLLM max number of sequences to schedule concurrently",
+    )
+    parser.add_argument(
+        "--dtype",
+        type=str,
+        default=DEFAULT_DTYPE,
+        help="vLLM model dtype",
     )
     return parser.parse_args()
 
@@ -85,13 +103,12 @@ def build_system_prompt(valid_letters, prompt_style):
     letters_str = ", ".join(valid_letters)
 
     if prompt_style == "instruction":
-        # Keep the answer letters dynamic because this evaluator supports 2-7 options.
         return (
             "You are a medical AI assistant used for decision-making in a clinical setting.\n"
             "The question may contain trap details, misleading clues, or clinically plausible but diagnostically irrelevant information.\n"
             "Do not be distracted by information that is not necessary for determining the correct answer.\n"
             "Reason step-by-step through this problem and provide your final answer\n"
-            f"Return only the letter ({letters_str}) of your choice and nothing else."
+            f"(Return only the letter ({letters_str}) of your choice and nothing else.)"
         )
 
     if prompt_style != "default":
@@ -269,16 +286,17 @@ def load_vllm_backend(args):
         "model": args.model,
         "tensor_parallel_size": args.tensor_parallel_size,
         "gpu_memory_utilization": args.gpu_memory_utilization,
+        "dtype": args.dtype,
+        "max_model_len": args.max_model_len,
+        "max_num_seqs": args.max_num_seqs,
         "trust_remote_code": True,
     }
-    if args.max_model_len is not None:
-        engine_kwargs["max_model_len"] = args.max_model_len
     if args.adapter:
         engine_kwargs["enable_lora"] = True
 
     llm = LLM(**engine_kwargs)
     sampling_params = SamplingParams(
-        temperature=0.0,
+        temperature=DEFAULT_TEMPERATURE,
         max_tokens=args.max_new_tokens,
     )
 
@@ -297,11 +315,13 @@ def load_vllm_backend(args):
         lora_request = LoRARequest(adapter_name or "adapter", 1, adapter_path)
 
     backend_meta = {
-        "temperature": 0.0,
+        "temperature": DEFAULT_TEMPERATURE,
         "batch_size": args.batch_size,
         "tensor_parallel_size": args.tensor_parallel_size,
         "gpu_memory_utilization": args.gpu_memory_utilization,
         "max_model_len": args.max_model_len,
+        "max_num_seqs": args.max_num_seqs,
+        "dtype": args.dtype,
     }
     return llm, sampling_params, lora_request, infer_model_type(args.adapter), backend_meta
 
@@ -672,10 +692,11 @@ def run_evaluation(args):
                 "batch_size": backend_meta["batch_size"],
                 "tensor_parallel_size": backend_meta["tensor_parallel_size"],
                 "gpu_memory_utilization": backend_meta["gpu_memory_utilization"],
+                "max_model_len": backend_meta["max_model_len"],
+                "max_num_seqs": backend_meta["max_num_seqs"],
+                "dtype": backend_meta["dtype"],
             }
         )
-        if backend_meta["max_model_len"] is not None:
-            generation_config["max_model_len"] = backend_meta["max_model_len"]
 
     summary = {
         "experiment_info": {

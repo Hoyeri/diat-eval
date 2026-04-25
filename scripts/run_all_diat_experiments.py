@@ -123,7 +123,9 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--tensor_parallel_size", type=int, default=1)
     parser.add_argument("--gpu_memory_utilization", type=float, default=0.9)
-    parser.add_argument("--max_model_len", type=int, default=None)
+    parser.add_argument("--max_model_len", type=int, default=4096)
+    parser.add_argument("--max_num_seqs", type=int, default=64)
+    parser.add_argument("--dtype", type=str, default="bfloat16")
     parser.add_argument("--load_in_4bit", action="store_true")
     parser.add_argument("--load_in_8bit", action="store_true")
     parser.add_argument(
@@ -295,10 +297,14 @@ def build_command(eval_script, args, dataset_path, run):
                 str(args.tensor_parallel_size),
                 "--gpu_memory_utilization",
                 str(args.gpu_memory_utilization),
+                "--max_model_len",
+                str(args.max_model_len),
+                "--max_num_seqs",
+                str(args.max_num_seqs),
+                "--dtype",
+                args.dtype,
             ]
         )
-        if args.max_model_len is not None:
-            cmd.extend(["--max_model_len", str(args.max_model_len)])
 
     return cmd
 

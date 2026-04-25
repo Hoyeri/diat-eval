@@ -20,7 +20,7 @@ By default, it evaluates every `.json` dataset file under `./dataset` using the 
 | `llama` | `meta-llama/Llama-3.1-8B-Instruct` | `base` with `default` and `instruction` prompts, `sft` seeds 42/43/44 with `default`, `diat` seeds 42/43/44 with `default` |
 
 For the SFT and DIAT variants, the script loads the corresponding Hugging Face adapter repositories automatically.
-For base models, the suite now supports two prompt styles: `default` and `instruction`. The `instruction` prompt explicitly tells the model to ignore noise such as trap details, misleading clues, and diagnostically irrelevant information.
+For base models, the suite supports two prompt styles: `default` and `instruction`. The `instruction` prompt explicitly tells the model to ignore noise such as trap details, misleading clues, and diagnostically irrelevant information.
 
 ## Quick Start
 
