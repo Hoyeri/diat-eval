@@ -49,10 +49,7 @@ huggingface-cli login
 rm -f dataset/*.json dataset/*.jsonl
 cp /path/to/your_dataset.json dataset/
 
-python scripts/run_all_diat_experiments.py \
-  --backend vllm \
-  --dataset_dir dataset \
-  --output_dir results
+python scripts/run_all_diat_experiments.py
 ```
 
 After the run finishes, check:
@@ -89,7 +86,7 @@ rm -f dataset/*.json dataset/*.jsonl
 cp /path/to/your_dataset.json dataset/
 ```
 
-This matters because `run_all_diat_experiments.py` evaluates every `.json` and `.jsonl` file under `dataset/` when you use `--dataset_dir dataset`. If sample files are still there, they will also be evaluated.
+This matters because `run_all_diat_experiments.py` evaluates every `.json` and `.jsonl` file under `dataset/` by default. If sample files are still there, they will also be evaluated.
 
 If your datasets live somewhere else, pass that directory explicitly with `--dataset_dir /path/to/your_datasets`.
 
@@ -175,14 +172,10 @@ Use `vllm` when:
 Recommended vLLM full-suite command:
 
 ```bash
-python scripts/run_all_diat_experiments.py \
-  --backend vllm \
-  --dataset_dir dataset \
-  --output_dir results \
-  --batch_size 32 \
-  --tensor_parallel_size 1 \
-  --gpu_memory_utilization 0.9
+python scripts/run_all_diat_experiments.py
 ```
+
+If you run into GPU memory or other resource limits, retry with smaller vLLM settings such as `--gpu_memory_utilization`, `--batch_size`, or `--max_num_seqs`. The defaults are `--gpu_memory_utilization 0.9`, `--batch_size 32`, and `--max_num_seqs 64`.
 
 Use `hf` when:
 
@@ -193,10 +186,7 @@ Use `hf` when:
 Recommended Hugging Face full-suite command:
 
 ```bash
-python scripts/run_all_diat_experiments.py \
-  --backend hf \
-  --dataset_dir dataset \
-  --output_dir results
+python scripts/run_all_diat_experiments.py --backend hf
 ```
 
 The `hf` backend is the fallback path when `vllm` is unavailable, and it uses standard Transformers/PEFT loading. It can be slower than `vllm`, especially for the full model suite. If the model does not fit in GPU memory or fails to load in the default mode, rerun with `--load_in_4bit` or `--load_in_8bit` as a lower-memory fallback.
