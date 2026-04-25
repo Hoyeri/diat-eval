@@ -2,7 +2,7 @@
 
 Place your real evaluation dataset file(s) in this folder.
 
-The evaluation script reads `.json` files from this directory when you run:
+The evaluation script reads `.json` and `.jsonl` files from this directory when you run:
 
 ```bash
 python scripts/run_all_diat_experiments.py \

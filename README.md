@@ -35,6 +35,9 @@ cd diat-eval
 # conda activate diat-eval
 
 pip install tqdm torch transformers peft huggingface_hub
+
+# Recommended default backend: install vLLM with a method that matches
+# your local CUDA / driver environment.
 pip install vllm
 
 # Before running the full suite, make sure your Hugging Face account has access
@@ -141,16 +144,24 @@ Install the common dependencies:
 pip install tqdm torch transformers peft huggingface_hub
 ```
 
-If you plan to use the vLLM backend:
+Recommended default backend: `vllm`
 
 ```bash
 pip install vllm
 ```
 
-If you plan to use the Hugging Face backend with 4-bit or 8-bit loading:
+`vllm`, `torch`, and `bitsandbytes` are sensitive to your local CUDA and driver environment. Install versions that match your system rather than assuming one pinned combination will work everywhere.
+
+If `vllm` is unavailable or does not run cleanly in your environment, use the Hugging Face fallback backend:
 
 ```bash
-pip install bitsandbytes accelerate
+pip install accelerate
+```
+
+If you plan to use the Hugging Face backend with `--load_in_4bit` or `--load_in_8bit` as a lower-memory fallback:
+
+```bash
+pip install bitsandbytes
 ```
 
 Authenticate with Hugging Face before running evaluation:
@@ -167,9 +178,9 @@ This repository supports two evaluation backends: `vllm` and `hf`.
 
 Use `vllm` when:
 
-- you have a GPU environment where vLLM installs cleanly;
-- you want to run the full suite faster;
-- you are running the main evaluation rather than debugging model loading.
+- it installs cleanly in your GPU environment;
+- you want the recommended default path for full evaluation;
+- you want faster evaluation throughput than the Hugging Face fallback.
 
 Recommended vLLM full-suite command:
 
@@ -185,7 +196,7 @@ python scripts/run_all_diat_experiments.py \
 
 Use `hf` when:
 
-- vLLM is not available in your environment;
+- vLLM is not available or does not run cleanly in your environment;
 - you want the standard Transformers/PEFT loading path;
 - you are debugging a small run or checking compatibility.
 
@@ -198,7 +209,7 @@ python scripts/run_all_diat_experiments.py \
   --output_dir results
 ```
 
-The `hf` backend uses standard Transformers/PEFT loading and defaults to `bf16` evaluation. It can be slower than `vllm`, especially for the full model suite. If the model does not fit in GPU memory or fails to load in the default mode, rerun with `--load_in_4bit` or `--load_in_8bit` as a lower-memory fallback.
+The `hf` backend is the fallback path when `vllm` is unavailable, and it uses standard Transformers/PEFT loading with default `bf16` evaluation. It can be slower than `vllm`, especially for the full model suite. If the model does not fit in GPU memory or fails to load in the default mode, rerun with `--load_in_4bit` or `--load_in_8bit` as a lower-memory fallback.
 
 ## Step 5: Run the Full Evaluation
 
