@@ -193,11 +193,10 @@ Recommended Hugging Face full-suite command:
 python scripts/run_all_diat_experiments.py \
   --backend hf \
   --dataset_dir dataset \
-  --output_dir results \
-  --load_in_4bit
+  --output_dir results
 ```
 
-The `hf` backend can be slower, especially for the full model suite. `--load_in_4bit` is useful when GPU memory is limited.
+The `hf` backend uses standard Transformers/PEFT loading and defaults to `bf16` evaluation. It can be slower than `vllm`, especially for the full model suite. If the model does not fit in GPU memory or fails to load in the default mode, rerun with `--load_in_4bit` or `--load_in_8bit` as a lower-memory fallback.
 
 ## Step 5: Run the Full Evaluation
 
