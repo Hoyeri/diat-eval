@@ -632,8 +632,6 @@ def run_evaluation(args):
     total = 0
 
     for i, (sample, generated) in enumerate(zip(prepared_samples, generated_outputs)):
-        question = sample["question"]
-        options = sample["options"]
         valid_letters = sample["valid_letters"]
         gold_answer = sample["gold_answer"]
 
@@ -651,8 +649,6 @@ def run_evaluation(args):
         results.append(
             {
                 **model_info,
-                "question": question,
-                "options": options,
                 "generated_text": generated,
                 "pred_answer": pred_answer,
                 "gold_answer": gold_answer,
